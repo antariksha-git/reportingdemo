@@ -1,6 +1,5 @@
 package com.numeroalpha.service.reportingdemo.controller;
-
-import com.numeroalpha.service.reportingdemo.service.impl.ReportServiceImpl;
+import com.numeroalpha.service.reportingdemo.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -16,31 +15,33 @@ import org.springframework.web.bind.annotation.*;
 public class ReportController {
 
     @Autowired
-    private ReportServiceImpl reportService;
+    private ReportService reportService;
 
-    @GetMapping("/{format}")
-    public ResponseEntity<byte[]> generateReport(@PathVariable String format) {
+    @GetMapping("/{format}/{fileName}")
+    public ResponseEntity<byte[]> generateReport(@PathVariable String format, @PathVariable String fileName) {
         try {
             // Generate the report in the specified format
-            byte[] report = reportService.generateReport(format);
+            byte[] report = reportService.generateReport(format, fileName);
+
+            String fullFileName = fileName + "." + format.toLowerCase();
 
             // Set the content type and disposition based on the format
             HttpHeaders headers = new HttpHeaders();
             switch (format.toUpperCase()) {
                 case "PDF":
                     headers.setContentType(MediaType.APPLICATION_PDF);
-                    headers.setContentDispositionFormData("inline", "employee_report.pdf");
+                    headers.setContentDispositionFormData("inline", fullFileName);
                     break;
                 case "HTML":
                     headers.setContentType(MediaType.TEXT_HTML);
                     break;
                 case "XLS":
                     headers.setContentType(MediaType.valueOf("application/vnd.ms-excel"));
-                    headers.setContentDispositionFormData("inline", "employee_report.xls");
+                    headers.setContentDispositionFormData("inline", fullFileName);
                     break;
                 case "CSV":
                     headers.setContentType(MediaType.valueOf("text/csv"));
-                    headers.setContentDispositionFormData("inline", "employee_report.csv");
+                    headers.setContentDispositionFormData("inline", fullFileName);
                     break;
                 default:
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
